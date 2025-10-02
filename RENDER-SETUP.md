@@ -5,11 +5,11 @@
 ### **1. HILOS_API_TOKEN (REQUERIDO)**
 - **Descripción:** Token de autorización para la API de Hilos
 - **Valor:** Tu token real de la API
-- **Ejemplo:** `4bc07ce70ba1bddb115d50bd54690140a3b73f96`
+- **Ejemplo:** `token`
 
 ### **2. HILOS_FLOW_ID (OPCIONAL)**
 - **Descripción:** ID del flujo específico de encuestas
-- **Valor por defecto:** `0684111b-3948-7ce2-8000-b20bbb1bd564`
+- **Valor por defecto:** `token`
 - **Solo cambiar si:** Tienes un flujo diferente
 
 ### **3. FLASK_ENV (OPCIONAL)**
