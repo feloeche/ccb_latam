@@ -1,4 +1,4 @@
-# CCB Excel Generator
+# CCB Talento Latam
 
 Una aplicación web simple para generar archivos Excel con datos de encuestas CCB desde la API de Hilos.
 
@@ -40,7 +40,7 @@ Una aplicación web simple para generar archivos Excel con datos de encuestas CC
 
 2. **Abrir en el navegador:**
    ```
-   http://localhost:5000
+   http://localhost:8080
    ```
 
 3. **Hacer clic en "Generar y Descargar Excel"**
@@ -161,7 +161,7 @@ python ccb.py --test
 
 ## Licencia
 
-Este proyecto es de uso interno para CCB.
+Este proyecto es de uso interno para CCB Talento Latam.
 
 ## Contribuciones
 
