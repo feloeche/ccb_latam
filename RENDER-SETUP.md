@@ -47,7 +47,7 @@ Value: tu-token-real-de-hilos-aqui
 
 ```
 Name: FRONTEND_ACCESS_TOKEN
-Value: ccb-access-2025-xyz123
+Value: Token de Autorización
 ```
 
 ```

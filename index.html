@@ -220,11 +220,10 @@
         <p class="subtitle">Genera archivos Excel con datos de encuestas CCB</p>
         
         <div class="api-config">
-            <h3>Configuración de API</h3>
-            <label for="apiUrl">URL del Servicio:</label>
-            <input type="text" id="apiUrl" placeholder="https://ccb-latam-1.onrender.com" value="https://ccb-latam-1.onrender.com">
-            <label for="authToken">Token de Autorización:</label>
-            <input type="password" id="authToken" placeholder="Tu token aquí">
+            <h3>🔐 Acceso</h3>
+            <label for="accessToken">Token de Acceso:</label>
+            <input type="password" id="accessToken" placeholder="Ingresa tu token de acceso">
+            <small>Contacta al administrador para obtener el token</small>
         </div>
 
         <div id="status" class="status" style="display: none;"></div>
@@ -272,8 +271,23 @@
         let currentJobId = null;
         let startTime = null;
 
+        function getAccessToken() {
+            const token = document.getElementById('accessToken').value.trim();
+            if (!token) {
+                throw new Error('Token de acceso requerido');
+            }
+            return token;
+        }
+
+        function getAuthHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAccessToken()}`
+            };
+        }
+
         function getApiUrl() {
-            return document.getElementById('apiUrl').value || 'https://ccb-latam-1.onrender.com';
+            return 'https://ccb-latam-1.onrender.com';
         }
 
         function showStatus(message, type = 'info') {
@@ -317,6 +331,9 @@
                 hideStatus();
                 updateProgress(10);
 
+                // Validar token de acceso
+                getAccessToken(); // Esto lanzará error si no hay token
+
                 const apiUrl = getApiUrl();
                 showStatus('Conectando con el servicio...', 'info');
                 updateProgress(20);
@@ -330,12 +347,10 @@
                 showStatus('Generando archivo Excel...', 'info');
                 updateProgress(50);
 
-                // Generar Excel
+                // Generar Excel con autenticación
                 const response = await fetch(`${apiUrl}/api/generate-excel`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
+                    headers: getAuthHeaders()
                 });
 
                 updateProgress(80);
