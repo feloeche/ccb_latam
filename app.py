@@ -3,7 +3,7 @@
 Aplicación Flask simple para generar archivos Excel CCB
 """
 
-from flask import Flask, jsonify, send_file
+from flask import Flask, jsonify, send_file, request
 from flask_cors import CORS
 import tempfile
 import logging
@@ -40,31 +40,47 @@ logger.info("Variables de entorno configuradas correctamente")
 # Variable global para almacenar resultados de trabajos
 job_results = {}
 
-def validate_frontend_token(request):
+def validate_frontend_token(request_obj):
     """
     Validar el token del frontend en las peticiones.
     
     Args:
-        request: Objeto request de Flask
+        request_obj: Objeto request de Flask
         
     Returns:
         bool: True si el token es válido, False en caso contrario
     """
-    # Obtener token del header Authorization
-    auth_header = request.headers.get('Authorization')
-    if not auth_header:
-        return False
-    
-    # Verificar formato "Bearer token"
     try:
-        scheme, token = auth_header.split(' ', 1)
-        if scheme.lower() != 'bearer':
+        # Verificar que el objeto request esté disponible
+        if not request_obj or not hasattr(request_obj, 'headers'):
+            logger.error("Objeto request no disponible")
             return False
-    except ValueError:
+            
+        # Obtener token del header Authorization
+        auth_header = request_obj.headers.get('Authorization')
+        if not auth_header:
+            logger.debug("No se encontró header Authorization")
+            return False
+        
+        # Verificar formato "Bearer token"
+        try:
+            scheme, token = auth_header.split(' ', 1)
+            if scheme.lower() != 'bearer':
+                logger.debug("Formato de autorización inválido")
+                return False
+        except ValueError:
+            logger.debug("Error al parsear header Authorization")
+            return False
+        
+        # Comparar con el token configurado
+        is_valid = token == FRONTEND_TOKEN
+        if not is_valid:
+            logger.debug("Token de acceso inválido")
+        return is_valid
+        
+    except Exception as e:
+        logger.error(f"Error al validar token: {e}")
         return False
-    
-    # Comparar con el token configurado
-    return token == FRONTEND_TOKEN
 
 @app.route('/')
 def index():
