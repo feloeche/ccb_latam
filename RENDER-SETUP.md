@@ -7,17 +7,22 @@
 - **Valor:** Tu token real de la API
 - **Ejemplo:** `token`
 
-### **2. HILOS_FLOW_ID (OPCIONAL)**
+### **2. FRONTEND_ACCESS_TOKEN (REQUERIDO)**
+- **Descripción:** Token de acceso para el frontend
+- **Valor:** Token que usarán los usuarios para acceder
+- **Ejemplo:** `token`
+- **Generar:** Usa un generador de tokens o crea uno único
+
+### **3. HILOS_FLOW_ID (OPCIONAL)**
 - **Descripción:** ID del flujo específico de encuestas
-- **Valor por defecto:** `token`
 - **Solo cambiar si:** Tienes un flujo diferente
 
-### **3. FLASK_ENV (OPCIONAL)**
+### **4. FLASK_ENV (OPCIONAL)**
 - **Descripción:** Entorno de Flask
 - **Valor recomendado:** `production`
 - **Propósito:** Optimizaciones de producción
 
-### **4. FLASK_DEBUG (OPCIONAL)**
+### **5. FLASK_DEBUG (OPCIONAL)**
 - **Descripción:** Modo debug de Flask
 - **Valor recomendado:** `False`
 - **Propósito:** Desactivar debug en producción
@@ -37,7 +42,12 @@
 
 ```
 Name: HILOS_API_TOKEN
-Value: tu-token-real-aqui
+Value: tu-token-real-de-hilos-aqui
+```
+
+```
+Name: FRONTEND_ACCESS_TOKEN
+Value: ccb-access-2025-xyz123
 ```
 
 ```

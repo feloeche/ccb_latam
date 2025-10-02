@@ -24,16 +24,47 @@ CORS(app)
 # Variables de entorno
 AUTH_TOKEN = os.getenv('HILOS_API_TOKEN')
 FLOW_ID = os.getenv('HILOS_FLOW_ID', '0684111b-3948-7ce2-8000-b20bbb1bd564')
+FRONTEND_TOKEN = os.getenv('FRONTEND_ACCESS_TOKEN')
 
 # Validar que las variables requeridas estén configuradas
 if not AUTH_TOKEN:
     logger.error("HILOS_API_TOKEN no está configurado. Configura esta variable de entorno.")
     raise ValueError("HILOS_API_TOKEN es requerido")
 
+if not FRONTEND_TOKEN:
+    logger.error("FRONTEND_ACCESS_TOKEN no está configurado. Configura esta variable de entorno.")
+    raise ValueError("FRONTEND_ACCESS_TOKEN es requerido")
+
 logger.info("Variables de entorno configuradas correctamente")
 
 # Variable global para almacenar resultados de trabajos
 job_results = {}
+
+def validate_frontend_token(request):
+    """
+    Validar el token del frontend en las peticiones.
+    
+    Args:
+        request: Objeto request de Flask
+        
+    Returns:
+        bool: True si el token es válido, False en caso contrario
+    """
+    # Obtener token del header Authorization
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return False
+    
+    # Verificar formato "Bearer token"
+    try:
+        scheme, token = auth_header.split(' ', 1)
+        if scheme.lower() != 'bearer':
+            return False
+    except ValueError:
+        return False
+    
+    # Comparar con el token configurado
+    return token == FRONTEND_TOKEN
 
 @app.route('/')
 def index():
@@ -46,7 +77,8 @@ def status():
     """Endpoint para verificar el estado del servicio"""
     return jsonify({
         'status': 'ok',
-        'message': 'Servicio CCB talento latam funcionando correctamente'
+        'message': 'Servicio CCB talento latam funcionando correctamente',
+        'auth_required': True
     })
 
 @app.route('/api/generate-excel', methods=['POST'])
@@ -55,7 +87,15 @@ def generate_excel():
     Endpoint para generar el archivo Excel
     """
     try:
-        logger.info("Solicitud recibida para generar archivo Excel")
+        # Validar token del frontend
+        if not validate_frontend_token(request):
+            logger.warning("Intento de acceso no autorizado")
+            return jsonify({
+                'success': False,
+                'error': 'Token de acceso requerido'
+            }), 401
+        
+        logger.info("Solicitud autorizada recibida para generar archivo Excel")
 
         # Crear instancia del extractor
         extractor = CCBDataExtractor(AUTH_TOKEN)
@@ -101,6 +141,14 @@ def generate_excel_async():
     Retorna un ID de trabajo que puede usarse para verificar el progreso
     """
     try:
+        # Validar token del frontend
+        if not validate_frontend_token(request):
+            logger.warning("Intento de acceso no autorizado (async)")
+            return jsonify({
+                'success': False,
+                'error': 'Token de acceso requerido'
+            }), 401
+        
         import uuid
         import threading
 
@@ -165,6 +213,11 @@ def job_status(job_id):
 @app.route('/api/download/<job_id>')
 def download_file(job_id):
     """Descargar archivo completado"""
+    # Validar token del frontend
+    if not validate_frontend_token(request):
+        logger.warning("Intento de descarga no autorizado")
+        return jsonify({'error': 'Token de acceso requerido'}), 401
+    
     if job_id not in job_results:
         return jsonify({'error': 'Trabajo no encontrado'}), 404
 
