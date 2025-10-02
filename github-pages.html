@@ -185,31 +185,13 @@
             font-size: 14px;
         }
 
-        .api-config {
-            background: #f8f9fa;
+        .service-info {
+            background: #e8f4f8;
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             margin: 20px 0;
-            text-align: left;
-        }
-
-        .api-config h3 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .api-config input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin: 5px 0;
             font-size: 14px;
-        }
-
-        .api-config label {
-            font-weight: 500;
-            color: #555;
+            color: #0c5460;
         }
     </style>
 </head>
@@ -219,12 +201,9 @@
         <h1>CCB Talento Latam</h1>
         <p class="subtitle">Genera archivos Excel con datos de encuestas CCB</p>
         
-        <div class="api-config">
-            <h3>Configuración de API</h3>
-            <label for="apiUrl">URL del Servicio:</label>
-            <input type="text" id="apiUrl" placeholder="https://ccb-latam-1.onrender.com" value="https://ccb-latam-1.onrender.com">
-            <label for="authToken">Token de Autorización:</label>
-            <input type="password" id="authToken" placeholder="Tu token aquí">
+        <div class="service-info">
+            <strong>🔗 Servicio conectado a Render</strong><br>
+            Backend desplegado en la nube
         </div>
 
         <div id="status" class="status" style="display: none;"></div>
@@ -240,10 +219,6 @@
 
         <button id="generateBtn" class="btn" onclick="generateExcel()">
             📥 Generar y Descargar Excel
-        </button>
-
-        <button id="generateAsyncBtn" class="btn" onclick="generateExcelAsync()" style="display: none;">
-            🔄 Generar de forma asíncrona
         </button>
 
         <div id="stats" class="stats">
@@ -269,12 +244,10 @@
     </div>
 
     <script>
-        let currentJobId = null;
+        // URL del servicio Render (CAMBIAR POR TU URL REAL)
+        const RENDER_SERVICE_URL = 'https://tu-app.onrender.com';
+        
         let startTime = null;
-
-        function getApiUrl() {
-            return document.getElementById('apiUrl').value || 'http://localhost:5000';
-        }
 
         function showStatus(message, type = 'info') {
             const statusDiv = document.getElementById('status');
@@ -317,12 +290,11 @@
                 hideStatus();
                 updateProgress(10);
 
-                const apiUrl = getApiUrl();
-                showStatus('Conectando con el servicio...', 'info');
+                showStatus('Conectando con el servicio Render...', 'info');
                 updateProgress(20);
 
                 // Verificar estado del servicio
-                const statusResponse = await fetch(`${apiUrl}/api/status`);
+                const statusResponse = await fetch(`${RENDER_SERVICE_URL}/api/status`);
                 if (!statusResponse.ok) {
                     throw new Error('El servicio no está disponible');
                 }
@@ -331,7 +303,7 @@
                 updateProgress(50);
 
                 // Generar Excel
-                const response = await fetch(`${apiUrl}/api/generate-excel`, {
+                const response = await fetch(`${RENDER_SERVICE_URL}/api/generate-excel`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -376,105 +348,18 @@
             }
         }
 
-        async function generateExcelAsync() {
-            try {
-                showLoading();
-                hideStatus();
-                
-                const apiUrl = getApiUrl();
-                
-                // Iniciar trabajo asíncrono
-                const response = await fetch(`${apiUrl}/api/generate-excel-async`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Error al iniciar el procesamiento');
-                }
-
-                const result = await response.json();
-                currentJobId = result.job_id;
-                
-                showStatus('Procesamiento iniciado. Verificando progreso...', 'info');
-                
-                // Verificar progreso
-                checkJobStatus();
-
-            } catch (error) {
-                console.error('Error:', error);
-                showStatus(`❌ Error: ${error.message}`, 'error');
-                hideLoading();
-            }
-        }
-
-        async function checkJobStatus() {
-            if (!currentJobId) return;
-
-            try {
-                const apiUrl = getApiUrl();
-                const response = await fetch(`${apiUrl}/api/job-status/${currentJobId}`);
-                
-                if (!response.ok) {
-                    throw new Error('Error al verificar el estado del trabajo');
-                }
-
-                const job = await response.json();
-
-                if (job.status === 'processing') {
-                    showStatus('Procesando datos...', 'info');
-                    updateProgress(50);
-                    setTimeout(checkJobStatus, 2000); // Verificar cada 2 segundos
-                } else if (job.status === 'completed') {
-                    updateProgress(90);
-                    
-                    // Descargar archivo
-                    const downloadResponse = await fetch(`${apiUrl}/api/download/${currentJobId}`);
-                    if (downloadResponse.ok) {
-                        const blob = await downloadResponse.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.style.display = 'none';
-                        a.href = url;
-                        a.download = 'ccb_data.xlsx';
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        document.body.removeChild(a);
-                        
-                        updateProgress(100);
-                        showStatus(`✅ Archivo generado con ${job.record_count} registros!`, 'success');
-                        showStats(job.record_count, job.record_count, 'N/A');
-                    }
-                } else if (job.status === 'error') {
-                    throw new Error(job.error || 'Error en el procesamiento');
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                showStatus(`❌ Error: ${error.message}`, 'error');
-            } finally {
-                hideLoading();
-                currentJobId = null;
-            }
-        }
-
         // Verificar estado del servicio al cargar la página
         window.addEventListener('load', async () => {
             try {
-                const apiUrl = getApiUrl();
-                const response = await fetch(`${apiUrl}/api/status`);
+                const response = await fetch(`${RENDER_SERVICE_URL}/api/status`);
                 if (response.ok) {
-                    showStatus('✅ Servicio conectado correctamente', 'success');
+                    showStatus('✅ Servicio Render conectado correctamente', 'success');
                     setTimeout(hideStatus, 3000);
                 } else {
                     showStatus('⚠️ Servicio no disponible. Verifica la URL.', 'warning');
                 }
             } catch (error) {
-                showStatus('⚠️ No se pudo conectar al servicio. Verifica la configuración.', 'warning');
+                showStatus('⚠️ No se pudo conectar al servicio Render.', 'warning');
             }
         });
     </script>
