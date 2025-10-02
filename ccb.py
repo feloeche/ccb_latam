@@ -16,22 +16,28 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class CCBDataExtractor:
-    def __init__(self, auth_token: str):
+    def __init__(self, auth_token: str = None, flow_id: str = None):
         """
         Inicializar el extractor con el token de autorización.
         
         Args:
-            auth_token: Token de autorización para la API
+            auth_token: Token de autorización para la API (opcional, usa env var si no se proporciona)
+            flow_id: ID del flujo específico (opcional, usa env var si no se proporciona)
         """
-        self.auth_token = auth_token
+        import os
+        
+        # Usar variables de entorno si no se proporcionan parámetros
+        self.auth_token = auth_token or os.getenv('HILOS_API_TOKEN')
+        self.flow_id = flow_id or os.getenv('HILOS_FLOW_ID', '0684111b-3948-7ce2-8000-b20bbb1bd564')
+        
+        if not self.auth_token:
+            raise ValueError("HILOS_API_TOKEN es requerido. Configúralo como variable de entorno o pásalo como parámetro.")
+        
         self.base_url = "https://api.hilos.io/api"
         self.headers = {
-            'Authorization': f'Token {auth_token}',
+            'Authorization': f'Token {self.auth_token}',
             'Content-Type': 'application/json'
         }
-        
-        # ID del flujo específico
-        self.flow_id = "0684111b-3948-7ce2-8000-b20bbb1bd564"
         
         # Columnas requeridas para el Excel
         self.required_columns = [
@@ -484,12 +490,18 @@ def main():
     Función principal del script.
     """
     import sys
+    import os
     
-    # Token de autorización (debería venir de variables de entorno o configuración)
-    AUTH_TOKEN = "4bc07ce70ba1bddb115d50bd54690140a3b73f96"
+    # Usar variables de entorno para configuración
+    AUTH_TOKEN = os.getenv('HILOS_API_TOKEN')
     
-    # Crear instancia del extractor
-    extractor = CCBDataExtractor(AUTH_TOKEN)
+    if not AUTH_TOKEN:
+        logger.error("HILOS_API_TOKEN no está configurado como variable de entorno.")
+        logger.error("Configúralo con: export HILOS_API_TOKEN='tu-token-aqui'")
+        sys.exit(1)
+    
+    # Crear instancia del extractor (usará env vars automáticamente)
+    extractor = CCBDataExtractor()
     
     # Verificar si se solicita modo de prueba
     test_mode = len(sys.argv) > 1 and sys.argv[1] == "--test"

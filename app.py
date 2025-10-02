@@ -7,6 +7,7 @@ from flask import Flask, jsonify, send_file
 from flask_cors import CORS
 import tempfile
 import logging
+import os
 from ccb import CCBDataExtractor
 
 # Configurar logging
@@ -20,8 +21,16 @@ app = Flask(__name__)
 # Permitir llamadas desde cualquier origen (para GitHub Pages)
 CORS(app)
 
-# Token de autorización (en producción debería venir de variables de entorno)
-AUTH_TOKEN = "4bc07ce70ba1bddb115d50bd54690140a3b73f96"
+# Variables de entorno
+AUTH_TOKEN = os.getenv('HILOS_API_TOKEN')
+FLOW_ID = os.getenv('HILOS_FLOW_ID', '0684111b-3948-7ce2-8000-b20bbb1bd564')
+
+# Validar que las variables requeridas estén configuradas
+if not AUTH_TOKEN:
+    logger.error("HILOS_API_TOKEN no está configurado. Configura esta variable de entorno.")
+    raise ValueError("HILOS_API_TOKEN es requerido")
+
+logger.info("Variables de entorno configuradas correctamente")
 
 # Variable global para almacenar resultados de trabajos
 job_results = {}

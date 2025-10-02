@@ -69,8 +69,12 @@ git push origin master
 1. Ve a tu servicio en Render
 2. Ve a **Environment**
 3. Agrega estas variables:
-   - `HILOS_API_TOKEN`: Tu token de la API de Hilos
-   - `FLASK_ENV`: `production`
+   - `HILOS_API_TOKEN`: Tu token de la API de Hilos (**REQUERIDO**)
+   - `HILOS_FLOW_ID`: ID del flujo (opcional, tiene valor por defecto)
+   - `FLASK_ENV`: `production` (opcional)
+   - `FLASK_DEBUG`: `False` (opcional)
+
+**⚠️ IMPORTANTE:** Sin `HILOS_API_TOKEN`, la aplicación no funcionará.
 
 ### **Configuración de dominio personalizado (opcional):**
 Si tienes un dominio personalizado:

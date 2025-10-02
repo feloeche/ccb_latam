@@ -93,13 +93,30 @@ ccb/
 
 ## Configuración
 
-### Token de API
-El token de autorización está configurado en `app.py`. Para producción, considera usar variables de entorno:
+### Variables de Entorno
+La aplicación usa variables de entorno para configuración segura:
 
-```python
-import os
-AUTH_TOKEN = os.getenv('HILOS_API_TOKEN', 'tu-token-aqui')
+#### **Variables Requeridas:**
+- `HILOS_API_TOKEN`: Token de autorización para la API de Hilos
+
+#### **Variables Opcionales:**
+- `HILOS_FLOW_ID`: ID del flujo (por defecto: 0684111b-3948-7ce2-8000-b20bbb1bd564)
+- `FLASK_ENV`: Entorno de Flask (por defecto: development)
+- `FLASK_DEBUG`: Debug de Flask (por defecto: True)
+
+#### **Configuración Local:**
+```bash
+# Crear archivo .env (basado en env.example)
+cp env.example .env
+
+# Editar .env con tus valores
+export HILOS_API_TOKEN="tu-token-aqui"
 ```
+
+#### **Configuración en Render:**
+1. Ve a tu servicio en Render
+2. Ve a **Environment**
+3. Agrega las variables de entorno necesarias
 
 ### CORS
 La aplicación tiene CORS habilitado para permitir llamadas desde cualquier origen. Para mayor seguridad en producción, puedes configurar dominios específicos:
